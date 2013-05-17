@@ -15,7 +15,6 @@
  *
  */
 
-
 #include <asm/cputime.h>
 #include <linux/kernel.h>
 #include <linux/kernel_stat.h>
