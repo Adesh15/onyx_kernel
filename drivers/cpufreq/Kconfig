@@ -129,6 +129,12 @@ config CPU_FREQ_DEFAULT_GOV_NIGHTMARE
 	select CPU_FREQ_GOV_NIGHTMARE
 	help
 
+config CPU_FREQ_DEFAULT_GOV_SMARTMAX
+    bool "smartmax"
+    select CPU_FREQ_GOV_SMARTMAX
+	help
+      Use the CPUFreq governor 'smartmax' as default
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -240,7 +246,6 @@ config CPU_FREQ_GOV_CONSERVATIVE
 
 	  If in doubt, say N.
 
-
 config CPU_FREQ_GOV_IMPULSE
  	tristate "'impulse' cpufreq policy governor"
  	help
@@ -263,8 +268,12 @@ config CPU_FREQ_GOV_ALUCARD
 config CPU_FREQ_GOV_SMARTMAX_EPS
         tristate "'smartmax EPS' cpufreq policy governor"
         select CPU_FREQ_TABLE
-        help
-          'smartmax EPS' is the extreme powersaving version of smartmax
+
+config CPU_FREQ_GOV_SMARTMAX
+		tristate "'smartmax' cpufreq policy governor"
+		select CPU_FREQ_TABLE
+		help
+		'smartmax' combined ondemand and smartass2
 
 config CPU_FREQ_GOV_DARKNESS
 	bool "darkness"
