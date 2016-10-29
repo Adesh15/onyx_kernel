@@ -242,6 +242,10 @@ config CPU_FREQ_GOV_IMPULSE
  	  designed for optimized balance between power and performance.
 
 
+config CPU_FREQ_DEFAULT_GOV_DARKNESS
+	bool "darkness"
+	select CPU_FREQ_GOV_DARKNESS
+
 menu "x86 CPU frequency scaling drivers"
 depends on X86
 source "drivers/cpufreq/Kconfig.x86"
