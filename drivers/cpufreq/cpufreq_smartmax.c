@@ -39,10 +39,6 @@
 #include <linux/slab.h>
 #include <linux/kernel_stat.h>
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
-
 /******************** Tunable parameters: ********************/
 
 /*
@@ -51,79 +47,9 @@
  * lowering the frequency towards the ideal frequency is faster than below it.
  */
 
-
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_ENRC2B
-#define DEFAULT_SUSPEND_IDEAL_FREQ 475000
-#define DEFAULT_AWAKE_IDEAL_FREQ 475000
-#define DEFAULT_RAMP_UP_STEP 300000
-#define DEFAULT_RAMP_DOWN_STEP 150000
-#define DEFAULT_MAX_CPU_LOAD 80
-#define DEFAULT_MIN_CPU_LOAD 50
-#define DEFAULT_UP_RATE 30000
-#define DEFAULT_DOWN_RATE 60000
-#define DEFAULT_SAMPLING_RATE 30000
-/*
- * from cpufreq_wheatley.c
- * Not all CPUs want IO time to be accounted as busy; this dependson how
- * efficient idling at a higher frequency/voltage is.
- * Pavel Machek says this is not so for various generations of AMD and old
- * Intel systems.
- * Mike Chan (androidlcom) calis this is also not true for ARM.
- */
-#define DEFAULT_IO_IS_BUSY 0
-#define DEFAULT_IGNORE_NICE 1
-#endif
-
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_PRIMOU
-#define DEFAULT_SUSPEND_IDEAL_FREQ 368000
-#define DEFAULT_AWAKE_IDEAL_FREQ 806000
-#define DEFAULT_RAMP_UP_STEP 200000
-#define DEFAULT_RAMP_DOWN_STEP 200000
-#define DEFAULT_MAX_CPU_LOAD 60
-#define DEFAULT_MIN_CPU_LOAD 30
-#define DEFAULT_UP_RATE 30000
-#define DEFAULT_DOWN_RATE 60000
-#define DEFAULT_SAMPLING_RATE 30000
-#define DEFAULT_IO_IS_BUSY 0
-#define DEFAULT_IGNORE_NICE 1
-#endif
-
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_M7
-#define DEFAULT_SUSPEND_IDEAL_FREQ 384000
-#define DEFAULT_AWAKE_IDEAL_FREQ 594000
-#define DEFAULT_RAMP_UP_STEP 200000
-#define DEFAULT_RAMP_DOWN_STEP 200000
-#define DEFAULT_MAX_CPU_LOAD 70
-#define DEFAULT_MIN_CPU_LOAD 40
-#define DEFAULT_UP_RATE 30000
-#define DEFAULT_DOWN_RATE 60000
-#define DEFAULT_SAMPLING_RATE 30000
-#define DEFAULT_IO_IS_BUSY 0
-#define DEFAULT_IGNORE_NICE 1
-#endif
-
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_APQ8064
-#define DEFAULT_SUSPEND_IDEAL_FREQ 384000
-#ifdef CONFIG_OPPO_N1
-#define DEFAULT_AWAKE_IDEAL_FREQ 918000
-#else
-#define DEFAULT_AWAKE_IDEAL_FREQ 702000
-#endif
-#define DEFAULT_RAMP_UP_STEP 300000
-#define DEFAULT_RAMP_DOWN_STEP 200000
-#define DEFAULT_MAX_CPU_LOAD 65
-#define DEFAULT_MIN_CPU_LOAD 35
-#define DEFAULT_UP_RATE 30000
-#define DEFAULT_DOWN_RATE 60000
-#define DEFAULT_SAMPLING_RATE 30000
-#define DEFAULT_IO_IS_BUSY 0
-#define DEFAULT_IGNORE_NICE 1
-#endif
-
-#define CONFIG_CPU_FREQ_GOV_SMARTMAX_MSM8974
-#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_MSM8974
-#define DEFAULT_SUSPEND_IDEAL_FREQ 422400
-#define DEFAULT_AWAKE_IDEAL_FREQ 1267200
+#define CONFIG_CPU_FREQ_GOV_SMARTMAX_SHAMU
+#ifdef CONFIG_CPU_FREQ_GOV_SMARTMAX_SHAMU
+#define DEFAULT_IDEAL_FREQ 1267200
 #define DEFAULT_RAMP_UP_STEP 200000
 #define DEFAULT_RAMP_DOWN_STEP 200000
 #define DEFAULT_MAX_CPU_LOAD 80
@@ -135,8 +61,7 @@
 #define DEFAULT_IGNORE_NICE 1
 #endif
 
-static unsigned int suspend_ideal_freq;
-static unsigned int awake_ideal_freq;
+static unsigned int ideal_freq;
 /*
  * Freqeuncy delta when ramping up above the ideal freqeuncy.
  * Zero disables and causes to always jump straight to max frequency.
@@ -234,12 +159,7 @@ static u64 timer_stat[4] = {0, 0, 0, 0};
 static DEFINE_MUTEX(dbs_mutex);
 static struct workqueue_struct *smartmax_wq;
 static unsigned int ideal_freq;
-static bool is_suspended = false;
 static unsigned int min_sampling_rate;
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static struct early_suspend smartmax_early_suspend_handler;
-#endif
 
 #define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
@@ -296,9 +216,6 @@ inline static void smartmax_update_min_max_allcpus(void) {
 	{
 		struct smartmax_info_s *this_smartmax = &per_cpu(smartmax_info, cpu);
 		if (this_smartmax->cur_policy){
-			if (lock_policy_rwsem_write(cpu) < 0)
-				continue;
-
 			smartmax_update_min_max(this_smartmax, this_smartmax->cur_policy);
 			unlock_policy_rwsem_write(cpu);
 		}
@@ -653,43 +570,19 @@ static ssize_t store_down_rate(struct kobject *kobj, struct attribute *attr,
 	return count;
 }
 
-static ssize_t show_awake_ideal_freq(struct kobject *kobj, struct attribute *attr,
+static ssize_t show_ideal_freq(struct kobject *kobj, struct attribute *attr,
 		char *buf) {
-	return sprintf(buf, "%u\n", awake_ideal_freq);
+	return sprintf(buf, "%u\n", ideal_freq);
 }
 
-static ssize_t store_awake_ideal_freq(struct kobject *kobj, struct attribute *attr,
+static ssize_t store_ideal_freq(struct kobject *kobj, struct attribute *attr,
 		const char *buf, size_t count) {
 	ssize_t res;
 	unsigned long input;
 	res = strict_strtoul(buf, 0, &input);
 	if (res >= 0 && input >= 0) {
-		awake_ideal_freq = input;
-		if (!is_suspended){
-			ideal_freq = awake_ideal_freq;
-			smartmax_update_min_max_allcpus();
-		}
-	} else
-		return -EINVAL;
-	return count;
-}
-
-static ssize_t show_suspend_ideal_freq(struct kobject *kobj, struct attribute *attr,
-		char *buf) {
-	return sprintf(buf, "%u\n", suspend_ideal_freq);
-}
-
-static ssize_t store_suspend_ideal_freq(struct kobject *kobj, struct attribute *attr,
-		const char *buf, size_t count) {
-	ssize_t res;
-	unsigned long input;
-	res = strict_strtoul(buf, 0, &input);
-	if (res >= 0 && input >= 0) {
-		suspend_ideal_freq = input;
-		if (is_suspended){
-			ideal_freq = suspend_ideal_freq;
-			smartmax_update_min_max_allcpus();
-		}
+		ideal_freq = ideal_freq;
+		smartmax_update_min_max_allcpus();
 	} else
 		return -EINVAL;
 	return count;
@@ -856,8 +749,7 @@ define_global_rw_attr(min_cpu_load);
 define_global_rw_attr(sampling_rate);
 define_global_rw_attr(io_is_busy);
 define_global_rw_attr(ignore_nice);
-define_global_rw_attr(awake_ideal_freq);
-define_global_rw_attr(suspend_ideal_freq);
+define_global_rw_attr(ideal_freq);
 define_global_ro_attr(min_sampling_rate);
 
 static struct attribute * smartmax_attributes[] = {
@@ -871,8 +763,7 @@ static struct attribute * smartmax_attributes[] = {
 	&sampling_rate_attr.attr,
 	&io_is_busy_attr.attr,
 	&ignore_nice_attr.attr,
-	&awake_ideal_freq_attr.attr,
-	&suspend_ideal_freq_attr.attr,
+	&ideal_freq_attr.attr,
 	&min_sampling_rate_attr.attr,
 	NULL , };
 
@@ -880,24 +771,6 @@ static struct attribute_group smartmax_attr_group = {
 	.attrs = smartmax_attributes,
 	.name = "smartmax",
 };
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void smartmax_early_suspend(struct early_suspend *h)
-{
-	dprintk(SMARTMAX_DEBUG_SUSPEND, "%s\n", __func__);
-	ideal_freq = suspend_ideal_freq;
-	is_suspended = true;
-	smartmax_update_min_max_allcpus();
-}
-
-static void smartmax_late_resume(struct early_suspend *h)
-{
-	dprintk(SMARTMAX_DEBUG_SUSPEND, "%s\n", __func__);
-	ideal_freq = awake_ideal_freq;
-	is_suspended = false;
-	smartmax_update_min_max_allcpus();
-}
-#endif
 
 static int cpufreq_governor_smartmax(struct cpufreq_policy *new_policy,
 		unsigned int event) {
@@ -1020,9 +893,7 @@ static int __init cpufreq_smartmax_init(void) {
 
 	up_rate = DEFAULT_UP_RATE;
 	down_rate = DEFAULT_DOWN_RATE;
-	suspend_ideal_freq = DEFAULT_SUSPEND_IDEAL_FREQ;
-	awake_ideal_freq = DEFAULT_AWAKE_IDEAL_FREQ;
-	ideal_freq = awake_ideal_freq;
+	ideal_freq = DEFAULT_IDEAL_FREQ;
 	ramp_up_step = DEFAULT_RAMP_UP_STEP;
 	ramp_down_step = DEFAULT_RAMP_DOWN_STEP;
 	max_cpu_load = DEFAULT_MAX_CPU_LOAD;
@@ -1041,12 +912,6 @@ static int __init cpufreq_smartmax_init(void) {
 		this_smartmax->cur_cpu_load = 0;
 		mutex_init(&this_smartmax->timer_mutex);
 	}
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	smartmax_early_suspend_handler.suspend = smartmax_early_suspend;
-	smartmax_early_suspend_handler.resume = smartmax_late_resume;
-	smartmax_early_suspend_handler.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 100;
-#endif
 
 	return cpufreq_register_governor(&cpufreq_gov_smartmax);
 }
