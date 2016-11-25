@@ -40,7 +40,7 @@ echo "                                   Compiling Star-Kernel                  
 echo "                    "
 echo -e "$green ********************************************************************************************** $nocol"
 #make clean && make mrproper
-make slim_onyx_defconfig
+make star_defconfig
 make -j32
 if ! [ -a $KERN_IMG ];
 then
