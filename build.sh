@@ -21,8 +21,8 @@ STAR_VERSION="alpha-0.1"
 # Device Spceifics
 export ARCH=arm
 export CROSS_COMPILE="/home/adesh15/android/ndk/android-ndk-r13b/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-"
-export KBUILD_BUILD_USER="hatti"
-export KBUILD_BUILD_HOST="ghoda"
+export KBUILD_BUILD_USER="Adesh15"
+export KBUILD_BUILD_HOST="Galaxy"
 
 ########################
 ## Start Build Script ##
