@@ -16,7 +16,6 @@ obj-$(CONFIG_CPU_FREQ_GOV_DARKNESS)	+= cpufreq_darkness.o
 
 # CPU Input Boost
 #obj-$(CONFIG_CPU_INPUT_BOOST)		+= cpu_input_boost.o
->>>>>>> f2e3a28... drivers: cpufreq: add darkness
 
 # CPUfreq cross-arch helpers
 obj-$(CONFIG_CPU_FREQ_TABLE)		+= freq_table.o
