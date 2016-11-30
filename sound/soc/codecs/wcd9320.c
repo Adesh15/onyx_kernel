@@ -7620,7 +7620,6 @@ static int taiko_codec_probe(struct snd_soc_codec *codec)
     priv_headset_type = taiko;
 #endif
 /* OPPO 2013-11-12 xuzhaoan Add end */
-=======
 
 	/*
 	 * Get the default values during probe
