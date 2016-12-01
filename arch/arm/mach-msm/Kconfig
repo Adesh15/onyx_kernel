@@ -1886,39 +1886,12 @@ config MSM_DEVFREQ_CPUBW
 	  agnostic interface to so that some of the devfreq governors can be
 	  shared across SoCs.
 
-<<<<<<< HEAD
-=======
-
-config CPU_VOLTAGE_TABLE
-	bool "Enable CPU Voltage Table via sysfs for adjustements"
-	default n
-	help
-	  DTS based kernel User Votlage Control
-
 config FORCE_FAST_CHARGE
 	bool "Force faster charge rate for USB"
 	default y
 	help
 	  This allows users to override default charge rate up to 900mA on USB
 
-=======
->>>>>>> 3324785... Voltage Control: added voltage control for DTS based kernels
-config CPU_VOLTAGE_TABLE
-	bool "Enable CPU Voltage Table via sysfs for adjustements"
-	default n
-	help
-	  DTS based kernel User Votlage Control
-
-=======
->>>>>>> parent of 3324785... Voltage Control: added voltage control for DTS based kernels
-config MSM_AVS_HW
-	bool "Enable Adaptive Voltage Scaling (AVS)"
-	default n
-	help
-	  Enable AVS hardware to fine tune voltage at each frequency. The
-	  AVS hardware blocks associated with each Qualcomm ARMv7 cores can
-	  fine tune the voltages based on the feedback from the ring
-	  oscillators.
 
 config MSM_HW3D
 	tristate "MSM Hardware 3D Register Driver"

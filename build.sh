@@ -39,7 +39,7 @@ echo "                    "
 echo "                                   Compiling Star-Kernel                    "
 echo "                    "
 echo -e "$green ********************************************************************************************** $nocol"
-make clean && make mrproper
+#make clean && make mrproper
 make star_defconfig
 make -j32
 if ! [ -a $KERN_IMG ];
