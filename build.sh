@@ -16,7 +16,7 @@ nocol='\033[0m'
 KERNEL_DIR=$PWD
 KERN_IMG=$KERNEL_DIR/arch/arm/boot/zImage-dtb
 OUT_DIR=$KERNEL_DIR/zipping/onyx
-STAR_VERSION="alpha-0.1"
+STAR_VERSION="alpha-0.2"
 
 # Device Spceifics
 export ARCH=arm
@@ -39,7 +39,7 @@ echo "                    "
 echo "                                   Compiling Star-Kernel                    "
 echo "                    "
 echo -e "$green ********************************************************************************************** $nocol"
-#make clean && make mrproper
+make clean && make mrproper
 make star_defconfig
 make -j32
 if ! [ -a $KERN_IMG ];
