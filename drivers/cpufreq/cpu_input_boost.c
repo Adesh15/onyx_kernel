@@ -24,6 +24,10 @@
 enum boost_status {
 	UNBOOST,
 	BOOST,
+<<<<<<< HEAD
+=======
+	REBOOST,
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 };
 
 struct fb_policy {
@@ -41,7 +45,12 @@ struct ib_pcpu {
 struct ib_config {
 	struct ib_pcpu __percpu *boost_info;
 	struct work_struct boost_work;
+<<<<<<< HEAD
 	bool running;
+=======
+	struct work_struct reboost_work;
+	enum boost_status running;
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 	uint64_t start_time;
 	uint32_t adj_duration_ms;
 	uint32_t duration_ms;
@@ -64,7 +73,11 @@ static void boost_cpu0(struct boost_policy *b);
 static bool is_driver_enabled(struct boost_policy *b);
 static bool is_fb_boost_active(struct boost_policy *b);
 static void set_fb_state(struct boost_policy *b, enum boost_status state);
+<<<<<<< HEAD
 static void set_ib_status(struct boost_policy *b, bool status);
+=======
+static void set_ib_status(struct boost_policy *b, enum boost_status status);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 static void unboost_all_cpus(struct boost_policy *b);
 static void unboost_cpu(struct ib_pcpu *pcpu);
 
@@ -118,7 +131,11 @@ static void ib_unboost_main(struct work_struct *work)
 	}
 
 	/* All input boosts are done, ready to accept new boosts now */
+<<<<<<< HEAD
 	set_ib_status(b, false);
+=======
+	set_ib_status(b, UNBOOST);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 }
 
 static void fb_boost_main(struct work_struct *work)
@@ -147,6 +164,23 @@ static void fb_unboost_main(struct work_struct *work)
 	unboost_all_cpus(b);
 }
 
+<<<<<<< HEAD
+=======
+static void ib_reboost_main(struct work_struct *work)
+{
+	struct boost_policy *b = boost_policy_g;
+	struct ib_pcpu *pcpu = per_cpu_ptr(b->ib.boost_info, 0);
+
+	/* Only keep CPU0 boosted (more efficient) */
+	if (cancel_delayed_work_sync(&pcpu->unboost_work))
+		queue_delayed_work(b->wq, &pcpu->unboost_work,
+				msecs_to_jiffies(b->ib.adj_duration_ms));
+
+	/* Clear reboost flag */
+	set_ib_status(b, pcpu->state);
+}
+
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 static int do_cpu_boost(struct notifier_block *nb,
 		unsigned long val, void *data)
 {
@@ -222,17 +256,27 @@ static void cpu_ib_input_event(struct input_handle *handle, unsigned int type,
 		unsigned int code, int value)
 {
 	struct boost_policy *b = handle->handler->private;
+<<<<<<< HEAD
 	bool do_boost, boost_running;
 
 	spin_lock(&b->lock);
 	do_boost = b->enabled && !b->fb.state;
 	boost_running = b->ib.running;
+=======
+	enum boost_status ib_status;
+	bool do_boost;
+
+	spin_lock(&b->lock);
+	ib_status = b->ib.running;
+	do_boost = b->enabled && !b->fb.state && (ib_status != REBOOST);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 	spin_unlock(&b->lock);
 
 	if (!do_boost)
 		return;
 
 	/* Continuous boosting (from constant user input) */
+<<<<<<< HEAD
 	if (boost_running) {
 		/* Only keep CPU0 boosted (more efficient) */
 		struct ib_pcpu *pcpu = per_cpu_ptr(b->ib.boost_info, 0);
@@ -245,6 +289,15 @@ static void cpu_ib_input_event(struct input_handle *handle, unsigned int type,
 	}
 
 	set_ib_status(b, true);
+=======
+	if (ib_status == BOOST) {
+		set_ib_status(b, REBOOST);
+		queue_work(b->wq, &b->ib.reboost_work);
+		return;
+	}
+
+	set_ib_status(b, BOOST);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 
 	queue_work(b->wq, &b->ib.boost_work);
 }
@@ -359,7 +412,11 @@ static void set_fb_state(struct boost_policy *b, enum boost_status state)
 	spin_unlock(&b->lock);
 }
 
+<<<<<<< HEAD
 static void set_ib_status(struct boost_policy *b, bool status)
+=======
+static void set_ib_status(struct boost_policy *b, enum boost_status status)
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 {
 	spin_lock(&b->lock);
 	b->ib.running = status;
@@ -380,7 +437,11 @@ static void unboost_all_cpus(struct boost_policy *b)
 	}
 	put_online_cpus();
 
+<<<<<<< HEAD
 	set_ib_status(b, false);
+=======
+	set_ib_status(b, UNBOOST);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 }
 
 static void unboost_cpu(struct ib_pcpu *pcpu)
@@ -589,6 +650,10 @@ static int __init cpu_ib_init(void)
 	}
 
 	INIT_WORK(&b->ib.boost_work, ib_boost_main);
+<<<<<<< HEAD
+=======
+	INIT_WORK(&b->ib.reboost_work, ib_reboost_main);
+>>>>>>> aac2fe43db78a53cf0a7b30803212a3da96fe3e0
 
 	spin_lock_init(&b->lock);
 
