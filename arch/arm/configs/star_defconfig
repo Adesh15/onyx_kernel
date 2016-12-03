@@ -3,6 +3,11 @@
 # Linux/arm 3.4.0 Kernel Configuration
 #
 #
+# CPU Hotplugs
+#
+CONFIG_AUTOSMP=y 
+
+
 CONFIG_ARM=y
 CONFIG_ARM_HAS_SG_CHAIN=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
