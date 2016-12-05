@@ -333,14 +333,14 @@ static inline unsigned int cpufreq_get(unsigned int cpu)
 #endif
 
 #ifdef CONFIG_LOW_CPUCLOCKS
-#define MIN_FREQ_LIMIT	268800
+#define MIN_FREQ_LIMIT	300000
 #else
-#define MIN_FREQ_LIMIT	268800
+#define MIN_FREQ_LIMIT	300000
 #endif
 #ifdef CONFIG_CPU_OVERCLOCK
-#define MAX_FREQ_LIMIT	2457600
+#define MAX_FREQ_LIMIT	2265600
 #else
-#define MAX_FREQ_LIMIT	2457600
+#define MAX_FREQ_LIMIT	2265600
 #endif
 
 /* query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it */
