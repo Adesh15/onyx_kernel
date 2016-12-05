@@ -57,7 +57,9 @@ struct hotplug_cpuparm {
 static DEFINE_PER_CPU_SHARED_ALIGNED(struct hotplug_cpuinfo, ac_hp_cpuinfo);
 static DEFINE_PER_CPU(struct hotplug_cpuparm, ac_hp_cpuparm);
 
+#ifdef CONFIG_STATE_NOTIFIER
 static struct notifier_block notif;
+#endif
 static struct delayed_work alucard_hotplug_work;
 static struct workqueue_struct *alucard_hp_wq;
 
