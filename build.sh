@@ -20,7 +20,7 @@ STAR_VERSION="alpha-5"
 
 # Device Spceifics
 export ARCH=arm
-export CROSS_COMPILE="/home/adesh15/android/ndk/android-ndk-r13b/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-"
+export CROSS_COMPILE="/home/adesikha15/android/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-"
 export KBUILD_BUILD_USER="Adesh15"
 export KBUILD_BUILD_HOST="Galaxy"
 
