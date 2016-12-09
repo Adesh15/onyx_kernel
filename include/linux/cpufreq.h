@@ -341,17 +341,6 @@ static inline unsigned int cpufreq_get(unsigned int cpu)
 }
 #endif
 
-#ifdef CONFIG_LOW_CPUCLOCKS
-#define MIN_FREQ_LIMIT	300000
-#else
-#define MIN_FREQ_LIMIT	300000
-#endif
-#ifdef CONFIG_CPU_OVERCLOCK
-#define MAX_FREQ_LIMIT	2265600
-#else
-#define MAX_FREQ_LIMIT	2265600
-#endif
-
 /* query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it */
 #ifdef CONFIG_CPU_FREQ
 unsigned int cpufreq_quick_get(unsigned int cpu);
@@ -367,9 +356,6 @@ static inline unsigned int cpufreq_quick_get_max(unsigned int cpu)
 }
 #endif
 
-enum {
-	BOOT_CPU = 0,
-};
 
 /*********************************************************************
  *                       CPUFREQ DEFAULT GOVERNOR                    *

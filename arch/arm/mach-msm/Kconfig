@@ -3099,12 +3099,6 @@ config HAS_MACH_MEMUTILS
 	bool "Motorola MSM memcpy enhancements"
 	help
 	Faster memcpy performance for Krait
-         
-config ALUCARD_HOTPLUG
-	bool "Enable alucard-hotplug cpu hotplug driver"
-	default y
-	help
-	  Generic Alucard-hotplug cpu hotplug driver for ARM SOCs
 
 config MSM_LIMITER
 	bool "MSM Frequency Limiter Driver"
